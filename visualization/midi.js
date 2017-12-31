@@ -20,8 +20,6 @@ var score = d3.select("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-
-
 // csvファイルの読み込み
 d3.csv("csv/aria_0.csv", type, function(error, data) {
     if (error) throw error;
@@ -34,7 +32,6 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("class", "x axis")
 	.attr("transform", "translate(0," + height + ")")
 	.call(xAxis.tickSize(-height));
-
     score.append("g")
 	.attr("class", "y axis")
 	.call(yAxis.tickSize(-width));
@@ -49,6 +46,9 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("width", function(d) { return x(d.end) - x(d.start); })
 	.attr("height", y.bandwidth());
 
+    notes.on("click", function(d, i) {
+	console.log("d.note_num=" + d.note_num + ", i=" + i);
+    })
 });
 
 function type(d) {
