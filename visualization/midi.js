@@ -1,3 +1,4 @@
+// Margin convention
 var margin = {top: 20, right: 20, bottom: 20, left: 20};
 var width = 10840 - margin.left - margin.right;
 var height = 600 - margin.top - margin.bottom;
@@ -15,10 +16,6 @@ var y = d3.scaleBand()
 var xAxis = d3.axisBottom(x)
     .ticks(192);
 var yAxis = d3.axisLeft(y);
-
-// マウスの動きに連動して情報を表示する要素
-var tooltip = d3.select("body").select("#tooltip")
-
 
 // 楽譜全体のグループ
 var score = d3.select("svg")
@@ -45,10 +42,9 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.call(yAxis.tickSize(-width));
 
     // 音符の数だけrectを生成
-
     var note_parents = score.selectAll("g.note")
 	.data(data).enter()
-	.append("g")
+      .append("g")
 	.attr("class", "note-group");
     var notes = note_parents.append("rect")
 	.attr("class", "note")
@@ -57,27 +53,12 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("y", function(d) { return y(d.note_num); })
 	.attr("width", function(d) { return x(d.end) - x(d.start); })
 	.attr("height", y.bandwidth());
-
-    note_parents.append("text")
+    var texts = note_parents.append("text")
 	.attr("class", "note-text")
 	.attr("x", function(d) { return x(d.start)-4; })
 	.attr("y", function(d) { return y(d.note_num)+y.bandwidth()-2; })
 	.style("display", "none")
 	.text(function(d) { return d.name; });
-
-    // マウスイベントの処理
-    /*
-      notes.on("click", function(d, i) {
-      console.log("d.name=" + d.name + ", i=" + i + "d.note_num=" + d.note_num);
-      }).on("mouseover", function(d){
-      return tooltip.style("visibility", "visible").text(d.name);
-      }).on("mousemove", function(d){
-      return tooltip.style("top", (event.pageY-18)+"px")
-      .style("left",(event.pageX+5)+"px");
-      }).on("mouseout", function(d){
-      return tooltip.style("visibility", "hidden");
-      });
-    */
 
     // マウスの位置の縦線
     var verticalLine = score.append("line")
@@ -87,53 +68,47 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("x2", 0)
 	.attr("y2", height);
 
-    // マウスをトラック
-    // rectを一番上にoverlayしないとちゃんとトラックしてくれないっぽい
+    // マウスをトラック : rectを一番上にoverlayしないとうまくいかない
     score.append("rect")
 	.attr("class", "overlay")
 	.attr("width", width)
 	.attr("height", height)
 	.on("mouseover", function() { verticalLine.style("display", null); })
-	.on("mouseout", function() {
-	    verticalLine.style("display", "none");
-	    d3.selectAll("rect")
-		.transition().delay(0).duration(0)
-		.attr("fill", "blue");
-	    note_parents.select("text")
-		.style("display", "none");
-
-	})
+	.on("mouseout", onMouseOut)
 	.on("mousemove", onMouseMove);
+
+    // マウスが楽譜から外れた時のコールバック
+    function onMouseOut() {
+	verticalLine.style("display", "none");
+	refresh();
+    }
 
     // 楽譜上でマウスを動かした時のコールバック
     function onMouseMove() {
+	refresh();
+
 	var mouseX = d3.mouse(this)[0];
 	verticalLine.transition().delay(0).duration(0)
 	    .attr("x1", mouseX)
 	    .attr("x2", mouseX);
 
-	// refresh
-	notes.transition().delay(0).duration(0)
-	    .attr("fill", "blue");
-	note_parents.select("text")
-	    .style("display", "none");
-
-	notes.filter(function(d) {
-	    // マウスのxを含む音
-	    return ( x(d.start) < mouseX ) && ( mouseX < x(d.end) );
-	}).transition().delay(0).duration(0)
-	    .attr("fill", "red");
-
-	// TODO 上とfilter共有
-
-	note_parents.filter(function(d) {
-	    // マウスのxを含む音
+	// 縦線と重なる音は表示を変更
+	var filtered_notes = note_parents.filter(function(d) {
 	    return ( x(d.start) < mouseX ) && ( mouseX < x(d.end) );
 	})
-	    .select("text")
+	filtered_notes.select("text")
 	    .style("display", null);
+	filtered_notes.select("rect")
+	    .transition().delay(0).duration(0)
+	    .attr("fill", "red");
     }
 
+    // 音とテキストを未選択状態の表示に戻す
+    function refresh() {
+	notes.transition().delay(0).duration(0)
+	    .attr("fill", "blue");
+	texts.style("display", "none");
+    }
 });
 
 
