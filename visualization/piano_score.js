@@ -2,39 +2,13 @@ var margin = {top: 20, right: 20, bottom: 20, left: 20};
 var width = 10000 - margin.left - margin.right;
 var height = 560 - margin.top - margin.bottom;
 
+// 鍵盤と楽譜の領域の幅
 var keyboardWidth = 60;
 var scoreWidth = width - keyboardWidth;
 
-var numKeyboards = 88; // 鍵盤の数
-var state = new Array(numKeyboards).fill(0); // それぞれの鍵盤が押された(1)か否(0)か
-data = state.map(function (d, i) {return {index: i, value: d }});
+// piano_util.jsで定義
+var piano = new Piano(keyboardWidth, height);
 
-// keyIndex番目(0 - numKeyboards-1)の鍵盤が白鍵か否か
-function isWhite(keyIndex) {
-    return [1, 4, 6, 9, 11].indexOf(keyIndex % 12) < 0;
-}
-
-// keyIndex番目(0 - numKeyboards-1)の鍵盤より低音側に白鍵がいくつあるか
-function leftWhiteKeys(keyIndex) {
-    return [...Array(keyIndex).keys()].reduce(function (p, c) {
-	return p+1*isWhite(c);
-    }, 0);
-}
-
-// 白鍵の総数
-var numWhiteKeys = leftWhiteKeys(numKeyboards);
-
-// 白鍵と黒鍵のサイズ
-var whiteWidth = height / numWhiteKeys;
-var blackWidth = whiteWidth * 0.7;
-var whiteHeight = keyboardWidth;
-var blackHeight = whiteHeight * 0.7;
-
-// keyIndex番目(0 - numKeyboards-1)の鍵盤の端のy
-function keyY(keyIndex) {
-    offset = isWhite(keyIndex) ? 0 : blackWidth/2 - whiteWidth;
-    return height - ( whiteWidth * leftWhiteKeys(keyIndex) + offset ) - whiteWidth;
-}
 
 /* ---------- */
 // -- 鍵盤 --
@@ -49,26 +23,26 @@ var keyboard = d3.select("svg.keyboard")
 
 // 鍵盤の数だけrectを生成
 var keys = keyboard.selectAll("rect")
-    .data(data)
+    .data(piano.data)
     .enter()
 
 // SVGにz-indexがないので先に白鍵のみ描画
-var whiteKeys = keys.filter(function(d) { return isWhite(d.index); }).append("rect")
-    .attr("class", "key key--white")// todo remove?
+var whiteKeys = keys.filter(function(d) { return piano.isWhite(d.index); }).append("rect")
+    .attr("class", "key key--white")
     .attr("fill", "white")
     .attr("x", 0)
-    .attr("y", function(d) { return keyY(d.index); })
-    .attr("width", whiteHeight)
-    .attr("height", whiteWidth);
+    .attr("y", function(d) { return piano.keyY(d.index); })
+    .attr("width", piano.whiteHeight)
+    .attr("height", piano.whiteWidth);
 
 // 黒鍵を描画
-var blackKeys = keys.filter(function(d) { return !isWhite(d.index); }).append("rect")
-    .attr("class", "key key--black")// todo remove?
+var blackKeys = keys.filter(function(d) { return !piano.isWhite(d.index); }).append("rect")
+    .attr("class", "key key--black")
     .attr("fill", "#777")
     .attr("x", 0)
-    .attr("y", function(d) { return keyY(d.index); })
-    .attr("width", blackHeight)
-    .attr("height", blackWidth);
+    .attr("y", function(d) { return piano.keyY(d.index); })
+    .attr("width", piano.blackHeight)
+    .attr("height", piano.blackWidth);
 
 /* ---------- */
 // -- 楽譜 --
