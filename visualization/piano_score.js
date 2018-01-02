@@ -58,31 +58,22 @@ var score = d3.select("svg.score")
 // Scale
 var x = d3.scaleLinear()
     .range([0, scoreWidth]);
-var y = d3.scaleBand()
-    .range([height, 0])
 
 // Axis
 var xAxis = d3.axisBottom(x)
     .ticks(192);
-//var yAxis = d3.axisLeft(y);
 
 // csvファイルの読み込み
 d3.csv("csv/aria_0.csv", type, function(error, data) {
     if (error) throw error;
 
     x.domain([0, d3.max(data, function(d) { return d.end; })]);
-    y.domain(data.map(function(d) { return d.note_num; }));
 
     // Axis
     score.append("g")
 	.attr("class", "x axis")
 	.attr("transform", "translate(0," + height + ")")
 	.call(xAxis.tickSize(-height));
-    /*
-    score.append("g")
-	.attr("class", "y axis")
-	.call(yAxis.tickSize(-scoreWidth));
-    */
 
     // 音符の数だけrectを生成
     var note_parents = score.selectAll("g.note")
@@ -93,13 +84,21 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("class", "note")
 	.attr("fill", "blue")
 	.attr("x", function(d) { return x(d.start); })
-	.attr("y", function(d) { return y(d.note_num); })
+	.attr("y", function(d) { return piano.keyY(piano.index(d.note_num)); })
 	.attr("width", function(d) { return x(d.end) - x(d.start); })
-	.attr("height", y.bandwidth());
+	.attr("height", function(d) {
+	    return piano.isWhite(piano.index(d.note_num)) ? piano.whiteWidth : piano.blackWidth;
+	});
     var texts = note_parents.append("text")
 	.attr("class", "note-text")
 	.attr("x", function(d) { return x(d.end)+4; })
-	.attr("y", function(d) { return y(d.note_num)+y.bandwidth()-2; })
+	.attr("y", function(d) {
+	    if (piano.isWhite(piano.index(d.note_num))){
+		return piano.keyY(piano.index(d.note_num)) + piano.whiteWidth;
+	    }else {
+		return piano.keyY(piano.index(d.note_num)) + piano.blackWidth;
+	    }
+	})
 	.style("display", "none")
 	.text(function(d) { return d.name; });
 
@@ -145,16 +144,16 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	    .transition().delay(0).duration(0)
 	    .attr("fill", "red");
 
-	// Test
+	// 縦線と重なる音に対応する鍵盤も表示を変更
 	for(var i=0; i<filtered_notes.data().length; i++){
 	    whiteKeys.filter(function(d) {
 		return d.note_num == filtered_notes.data()[i].note_num;
 	    }).transition().delay(0).duration(0)
-		.attr("fill", "red");
+		.attr("fill", "#f88");
 	    blackKeys.filter(function(d) {
-		return d.note_numx == filtered_notes.data()[i].note_num;
+		return d.note_num == filtered_notes.data()[i].note_num;
 	    }).transition().delay(0).duration(0)
-		.attr("fill", "blue");
+		.attr("fill", "#f00");
 	}	
     }
 

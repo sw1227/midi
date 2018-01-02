@@ -8,6 +8,11 @@ var Piano = function(width, height) {
 
     // 鍵盤の数（黒鍵含む）
     this.numKeyboards = 88;
+
+    // MIDIのnote_num -> index
+    this.index = function(n) {
+	return n - 21;
+    }
     
     // keyIndex番目(0 - numKeyboards-1)の鍵盤が白鍵か否か
     this.isWhite = function(keyIndex) {
