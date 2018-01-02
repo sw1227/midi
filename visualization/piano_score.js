@@ -58,10 +58,18 @@ var score = d3.select("svg.score")
 // Scale
 var x = d3.scaleLinear()
     .range([0, scoreWidth]);
+var whites = new Array(piano.numWhiteKeys).fill(0)
+var whiteY = d3.scaleBand()
+    .domain(whites.map(function(d, i) { return i; }))
+    .range([height, 0])
 
 // Axis
 var xAxis = d3.axisBottom(x)
     .ticks(192);
+var yAxis = d3.axisLeft(whiteY)  // 白鍵の間に横線を引く用
+    .tickSize(-scoreWidth)
+var xAxisTop = d3.axisTop(x);  // 小節
+
 
 // csvファイルの読み込み
 d3.csv("csv/aria_0.csv", type, function(error, data) {
@@ -74,6 +82,19 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("class", "x axis")
 	.attr("transform", "translate(0," + height + ")")
 	.call(xAxis.tickSize(-height));
+    // 小節ごとに縦棒を描く
+    var zeros = new Array(d3.max(data, function(d) { return d.end; }) / 3).fill(0);
+    xAxisTop.tickValues(zeros.map(function (d, i) { return 3*i; }));
+    score.append("g")
+	.attr("class", "measure")
+	.call(xAxisTop.tickSize(-height))
+	.selectAll("text").remove();
+    // 白鍵の間に横線を引く
+    score.append("g")
+	.attr("class", "y axis")
+	.call(yAxis)
+	.attr("transform", "translate(0," + (-piano.whiteWidth/2) + ")")
+	.selectAll("text").remove();
 
     // 音符の数だけrectを生成
     var note_parents = score.selectAll("g.note")

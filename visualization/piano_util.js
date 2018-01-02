@@ -45,7 +45,7 @@ var Piano = function(width, height) {
 
     // 鍵盤の要素にバインドする用
     var zeros = new Array(this.numKeyboards).fill(0);
-    this.data = zeros.map(function (d, i) {return {index: i,
-						   note_num: i + 21
-						  }});
+    this.data = zeros.map(function (d, i) {
+	return {index: i, note_num: i + 21};
+    });
 }
