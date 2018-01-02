@@ -16,8 +16,8 @@ var piano = new Piano(keyboardWidth, height);
 
 // 鍵盤全体のグループ
 var keyboard = d3.select("svg.keyboard")
-    .attr("width", keyboardWidth + margin.left)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("width", piano.width + margin.left)
+    .attr("height", piano.height + margin.top + margin.bottom)
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -53,7 +53,7 @@ var score = d3.select("svg.score")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
-    .attr("transform", "translate(" + (margin.left + keyboardWidth)  + "," + margin.top + ")");
+    .attr("transform", "translate(" + (margin.left + piano.width)  + "," + margin.top + ")");
 
 // Scale
 var x = d3.scaleLinear()
@@ -64,7 +64,7 @@ var y = d3.scaleBand()
 // Axis
 var xAxis = d3.axisBottom(x)
     .ticks(192);
-var yAxis = d3.axisLeft(y);
+//var yAxis = d3.axisLeft(y);
 
 // csvファイルの読み込み
 d3.csv("csv/aria_0.csv", type, function(error, data) {
@@ -78,9 +78,11 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("class", "x axis")
 	.attr("transform", "translate(0," + height + ")")
 	.call(xAxis.tickSize(-height));
+    /*
     score.append("g")
 	.attr("class", "y axis")
 	.call(yAxis.tickSize(-scoreWidth));
+    */
 
     // 音符の数だけrectを生成
     var note_parents = score.selectAll("g.note")
@@ -94,11 +96,9 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("y", function(d) { return y(d.note_num); })
 	.attr("width", function(d) { return x(d.end) - x(d.start); })
 	.attr("height", y.bandwidth());
-    // TODO: 鍵盤はテキストよりも奥にする
-    // そのためには別のsvg要素を後ろにつける必要がある気がする
     var texts = note_parents.append("text")
 	.attr("class", "note-text")
-	.attr("x", function(d) { return x(d.start)-4; })
+	.attr("x", function(d) { return x(d.end)+4; })
 	.attr("y", function(d) { return y(d.note_num)+y.bandwidth()-2; })
 	.style("display", "none")
 	.text(function(d) { return d.name; });
@@ -148,11 +148,11 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	// Test
 	for(var i=0; i<filtered_notes.data().length; i++){
 	    whiteKeys.filter(function(d) {
-		return d.index == filtered_notes.data()[i].note_num-21;
+		return d.note_num == filtered_notes.data()[i].note_num;
 	    }).transition().delay(0).duration(0)
 		.attr("fill", "red");
 	    blackKeys.filter(function(d) {
-		return d.index == filtered_notes.data()[i].note_num-21;
+		return d.note_numx == filtered_notes.data()[i].note_num;
 	    }).transition().delay(0).duration(0)
 		.attr("fill", "blue");
 	}	
@@ -167,7 +167,6 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	    .attr("fill", "white");
 	blackKeys.transition().delay(0).duration(0)
 	    .attr("fill", "#777");
-
     }
 });
 

@@ -1,11 +1,11 @@
 
-// 縦か横か・サイズなどを入れると座標とか全部出して欲しい
+// TODO: 縦と横両方対応
 var Piano = function(width, height) {
 
     // 鍵盤のサイズ
     this.width = width;
     this.height = height;
-    
+
     // 鍵盤の数（黒鍵含む）
     this.numKeyboards = 88;
     
@@ -38,7 +38,9 @@ var Piano = function(width, height) {
 	    - this.whiteWidth;
     }
 
-    // Piano.dataに音名やNo. 座標を入れればいい気がする
-    var state = new Array(this.numKeyboards).fill(0); // それぞれの鍵盤が押された(1)か否(0)か
-    this.data = state.map(function (d, i) {return {index: i, value: d }});   
+    // 鍵盤の要素にバインドする用
+    var zeros = new Array(this.numKeyboards).fill(0);
+    this.data = zeros.map(function (d, i) {return {index: i,
+						   note_num: i + 21
+						  }});
 }
