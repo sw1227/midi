@@ -88,20 +88,20 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
     score.append("g")
 	.attr("class", "measure")
 	.call(xAxisTop.tickSize(-height))
-	.selectAll("text").remove();
+      .selectAll("text").remove();
     // 白鍵の間に横線を引く
     score.append("g")
 	.attr("class", "y axis")
 	.call(yAxis)
 	.attr("transform", "translate(0," + (-piano.whiteWidth/2) + ")")
-	.selectAll("text").remove();
+      .selectAll("text").remove();
 
     // 音符の数だけrectを生成
-    var note_parents = score.selectAll("g.note")
+    var noteParents = score.selectAll("g.note")
 	.data(data).enter()
       .append("g")
 	.attr("class", "note-group");
-    var notes = note_parents.append("rect")
+    var notes = noteParents.append("rect")
 	.attr("class", "note")
 	.attr("fill", "blue")
 	.attr("x", function(d) { return x(d.start); })
@@ -110,7 +110,7 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	.attr("height", function(d) {
 	    return piano.isWhite(piano.index(d.note_num)) ? piano.whiteWidth : piano.blackWidth;
 	});
-    var texts = note_parents.append("text")
+    var texts = noteParents.append("text")
 	.attr("class", "note-text")
 	.attr("x", function(d) { return x(d.end)+4; })
 	.attr("y", function(d) {
@@ -156,23 +156,23 @@ d3.csv("csv/aria_0.csv", type, function(error, data) {
 	    .attr("x2", mouseX);
 
 	// 縦線と重なる音は表示を変更
-	var filtered_notes = note_parents.filter(function(d) {
+	var filteredNotes = noteParents.filter(function(d) {
 	    return ( x(d.start) < mouseX ) && ( mouseX < x(d.end) );
 	})
-	filtered_notes.select("text")
+	filteredNotes.select("text")
 	    .style("display", null);
-	filtered_notes.select("rect")
+	filteredNotes.select("rect")
 	    .transition().delay(0).duration(0)
 	    .attr("fill", "red");
 
 	// 縦線と重なる音に対応する鍵盤も表示を変更
-	for(var i=0; i<filtered_notes.data().length; i++){
+	for(var i=0; i<filteredNotes.data().length; i++){
 	    whiteKeys.filter(function(d) {
-		return d.note_num == filtered_notes.data()[i].note_num;
+		return d.note_num == filteredNotes.data()[i].note_num;
 	    }).transition().delay(0).duration(0)
 		.attr("fill", "#f88");
 	    blackKeys.filter(function(d) {
-		return d.note_num == filtered_notes.data()[i].note_num;
+		return d.note_num == filteredNotes.data()[i].note_num;
 	    }).transition().delay(0).duration(0)
 		.attr("fill", "#f00");
 	}	
