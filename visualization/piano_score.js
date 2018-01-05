@@ -7,7 +7,7 @@ var keyboardWidth = 60;
 var scoreWidth = width - keyboardWidth;
 
 // piano_util.jsで定義
-var piano = new Piano(keyboardWidth, height);
+var piano = new Piano(keyboardWidth, height, vertical=true);
 
 
 /* ---------- */

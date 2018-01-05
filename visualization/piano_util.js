@@ -1,6 +1,4 @@
-
-// TODO: 縦と横両方対応
-var Piano = function(width, height) {
+var Piano = function(width, height, vertical = false) {
 
     // 鍵盤のサイズ
     this.width = width;
@@ -8,6 +6,9 @@ var Piano = function(width, height) {
 
     // 鍵盤の数（黒鍵含む）
     this.numKeyboards = 88;
+
+    // 縦か否か（デフォルトでは横: vertical=false ）
+    this.vertical = vertical;
 
     // MIDIのnote_num -> index
     this.index = function(n) {
@@ -31,10 +32,19 @@ var Piano = function(width, height) {
     this.numWhiteKeys = this.leftWhiteKeys(this.numKeyboards);
     
     // 白鍵と黒鍵のサイズ
-    this.whiteWidth = this.height / this.numWhiteKeys;
+    if(this.vertical) {
+	this.whiteWidth = this.height / this.numWhiteKeys;
+	this.whiteHeight = this.width;
+    }else {
+	this.whiteWidth = this.width / this.numWhiteKeys;
+	this.whiteHeight = this.height;
+    };
     this.blackWidth = this.whiteWidth * 0.7;
-    this.whiteHeight = this.width;
     this.blackHeight = this.whiteHeight * 0.7;
+
+    ///////////////////////////////////////////////////////////////////////
+    // ピアノを縦と横どちらに表示するかによって以下のkeyYとkeyXを使い分ける
+    ///////////////////////////////////////////////////////////////////////
 
     // keyIndex番目(0 - numKeyboards-1)の鍵盤の端のy
     this.keyY = function(keyIndex) {
@@ -42,6 +52,12 @@ var Piano = function(width, height) {
 	return this.height - (this.whiteWidth*this.leftWhiteKeys(keyIndex) + offset)
 	    - this.whiteWidth;
     }
+    // keyIndex番目(0 - numKeyboards-1)の鍵盤の端のx
+    this.keyX = function(keyIndex) {
+	offset = this.isWhite(keyIndex) ? 0 : -this.blackWidth/2;
+	return this.whiteWidth * this.leftWhiteKeys(keyIndex) + offset;
+    }
+
 
     // 鍵盤の要素にバインドする用
     var zeros = new Array(this.numKeyboards).fill(0);
