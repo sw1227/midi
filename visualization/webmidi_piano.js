@@ -44,58 +44,36 @@ var blackKeys = keys.filter(function(d) { return !piano.isWhite(d.index); }).app
 // WebMIDI API
 ///////////////
 
-var midi={"inputs":[]};
-var inputSelIdx=null;
-navigator.requestMIDIAccess({sysex:false}).then(onSuccess, onError);
+navigator.requestMIDIAccess({sysex:false}).then(onSuccess,
+						function(msg){ console.log("ERROR: ",msg); });
 
 function onSuccess(access) {
-    // MIDI Inputデバイスの配列を作成
-    var inputIterator = access.inputs.values();
-    for (var o=inputIterator.next(); !o.done; o=inputIterator.next()){
-        midi.inputs.push(o.value);
-    }
-    // MIDI Inputデバイスのリスト表示と選択時の処理
-    var isel=document.querySelector("#midi-input");
-    for(var i=0; i<midi.inputs.length; i++){
-        isel.appendChild(new Option(midi.inputs[i]["name"], i));
-    }
-    isel.addEventListener("change", function(event){
-        if(parseInt(inputSelIdx)>=0) {
-            midi.inputs[inputSelIdx].onmidimessage=null;
-        }
-        inputSelIdx=event.target.value;
-        midi.inputs[event.target.value].onmidimessage=eventOut;
-    });
+    var midiDevices = Array.from(access.inputs.values());
 
-    function eventOut(event) {
+    // MIDIデバイスは1つしか接続されていない前提
+    if (midiDevices.length > 0) {
+	midiDevices[0].onmidimessage=onMidiMessage;
+	d3.select(".device").text("Device name: " + midiDevices[0].name);
+    }
+
+    function onMidiMessage(event) {
 	noteNum = event.data[1];
-	
+
 	if (event.data[0] == 144) {
 	    // 鍵盤が押された
-	    whiteKeys.filter(function(d) {
-		return d.note_num == noteNum;
-	    }).transition().delay(0).duration(0)
-		.attr("fill", "#f88");
-	    
-	    blackKeys.filter(function(d) {
-		return d.note_num == noteNum;
-	    }).transition().delay(0).duration(0)
-		.attr("fill", "#f00");
+	    setKeyColor(whiteKeys, "#fcc", noteNum);
+	    setKeyColor(blackKeys, "#f88", noteNum);
 	}else if (event.data[0] == 128) {
 	    //  鍵盤が離された
-	    whiteKeys.filter(function(d) {
+	    setKeyColor(whiteKeys, "white", noteNum);
+	    setKeyColor(blackKeys, "#777", noteNum);
+	}
+
+	function setKeyColor(keySelection, color, noteNum) {
+	    keySelection.filter(function(d) {
 		return d.note_num == noteNum;
 	    }).transition().delay(0).duration(0)
-		.attr("fill", "white");
-	    
-	    blackKeys.filter(function(d) {
-		return d.note_num == noteNum;
-	    }).transition().delay(0).duration(0)
-		.attr("fill", "#777");
+		.attr("fill", color);
 	}
     }
-}
-
-function onError(msg) {
-    console.log("[ERROR] ", msg);
 }
