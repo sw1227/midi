@@ -40,7 +40,9 @@ for (var i=0; i<numDonuts; i++) {
 
     g.append("path")
 	.attr("d", arcs[i])
-	.attr("fill", "#fff");
+	.attr("fill", function(d, i) {
+	    return [1, 3, 6, 8, 10].indexOf(i) < 0 ? "white" : "#bbb";
+	});
 
     // オクターブの番号
     donut.append("text")
@@ -75,7 +77,10 @@ function fillNote(noteNum) {
 
 // 色をリセットする
 function clearColor() {
-    d3.selectAll(".arc path").attr("fill", "#fff");
+    svg.selectAll("g.donut").selectAll("g.arc").select("path")
+	.attr("fill", function(d, i) {
+	    return [1, 3, 6, 8, 10].indexOf(i) < 0 ? "white" : "#bbb";
+	});
 }
 
 // Test
