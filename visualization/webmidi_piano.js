@@ -40,7 +40,7 @@ var blackKeys = keys.filter(function(d) { return !piano.isWhite(d.index); }).app
     .attr("height", piano.blackHeight);
 
 
- //////////////
+///////////////
 // WebMIDI API
 ///////////////
 
@@ -52,8 +52,8 @@ function onSuccess(access) {
 
     // MIDIデバイスは1つしか接続されていない前提
     if (midiDevices.length > 0) {
-	midiDevices[0].onmidimessage=onMidiMessage;
-	d3.select(".device").text("Device name: " + midiDevices[0].name);
+	midiDevices[midiDevices.length-1].onmidimessage=onMidiMessage;
+	d3.select(".device").text("Device name: " + midiDevices[midiDevices.length-1].name);
     }
 
     function onMidiMessage(event) {

@@ -66,13 +66,13 @@ for (var i=0; i<numDonuts; i++) {
 }
 
 // MIDIのnote番号をもとに色を塗る (noteNum: 24 - 107)
-function fillNote(noteNum) {
+function fillNote(noteNum, color) {
     d3.selectAll("g.donut")
 	.filter(function(d, i){ return i == Math.floor((noteNum-24)/12); })
 	.selectAll(".arc")
 	.filter(function(d, i){ return i == (noteNum-24) % 12; })
 	.select("path")
-	.attr("fill", "#fcc");
+	.attr("fill", color);
 }
 
 // 色をリセットする
@@ -83,9 +83,32 @@ function clearColor() {
 	});
 }
 
-// Test
-d3.interval(function() {
-    n = Math.floor(Math.random() * 84) + 24; // MIDI note number: 24 - 107
-    clearColor();
-    fillNote(n);
-}, 1000);
+
+///////////////
+// WebMIDI API
+///////////////
+
+navigator.requestMIDIAccess({sysex:false}).then(onSuccess,
+						function(msg){ console.log("ERROR: ",msg); });
+
+function onSuccess(access) {
+    var midiDevices = Array.from(access.inputs.values());
+
+    // MIDIデバイスは1つしか接続されていない前提
+    if (midiDevices.length > 0) {
+	midiDevices[midiDevices.length-1].onmidimessage=onMidiMessage;
+	d3.select(".device").text("Device name: " + midiDevices[midiDevices.length-1].name);
+    }
+
+    function onMidiMessage(event) {
+	noteNum = event.data[1];
+
+	if (event.data[0] == 144) {
+	    // 鍵盤が押された
+	    fillNote(noteNum, "#fcc");
+	}else if (event.data[0] == 128) {
+	    //  鍵盤が離された
+	    fillNote(noteNum, [1, 3, 6, 8, 10].indexOf(noteNum % 12) < 0 ? "white" : "#bbb");
+	}
+    }
+}
